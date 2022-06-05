@@ -1,0 +1,144 @@
+!
+upgrade fpd auto
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+no service password-encryption
+!
+hostname R5
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+no ip icmp rate-limit unreachable
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip cef
+no ipv6 cef
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+redundancy
+!
+!
+ip tcp synwait-time 5
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 5.5.5.5 255.255.255.255
+!
+interface FastEthernet0/0
+ ip address 56.0.0.5 255.255.255.0
+ duplex half
+!
+interface FastEthernet1/0
+ ip address 25.0.0.5 255.255.255.0
+ duplex half
+!
+interface FastEthernet2/0
+ ip address 45.0.0.5 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface FastEthernet2/1
+ ip address 58.0.0.5 255.255.255.0
+ duplex auto
+ speed auto
+!
+interface GigabitEthernet3/0
+ no ip address
+ shutdown
+ negotiation auto
+!
+router bgp 56
+ bgp log-neighbor-changes
+ neighbor 2.2.2.2 remote-as 1234
+ neighbor 2.2.2.2 ebgp-multihop 255
+ neighbor 2.2.2.2 update-source Loopback0
+ neighbor 2.2.2.2 route-map 10 in
+ neighbor 45.0.0.4 remote-as 1234
+ neighbor 56.0.0.6 remote-as 56
+ neighbor 56.0.0.6 next-hop-self
+ neighbor 58.0.0.8 remote-as 78
+ neighbor 58.0.0.8 route-map 50 in
+!
+ip forward-protocol nd
+no ip http server
+no ip http secure-server
+!
+!
+ip route 2.2.2.2 255.255.255.255 25.0.0.2
+!
+access-list 10 permit 1.1.1.1
+access-list 20 permit any
+access-list 50 permit 8.8.8.8
+access-list 50 permit 58.0.0.0 0.0.0.255
+access-list 60 permit any
+no cdp log mismatch duplex
+!
+route-map 10 permit 10
+ match ip address 10 20
+ set as-path prepend 100 100
+!
+route-map 20 permit 10
+ match ip address 20
+!
+route-map 50 permit 10
+ match ip address 50 60
+ set local-preference 0
+!
+!
+!
+control-plane
+!
+!
+!
+mgcp profile default
+!
+!
+!
+gatekeeper
+ shutdown
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login
+ transport input all
+!
+!
+end
